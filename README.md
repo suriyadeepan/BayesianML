@@ -1,12 +1,18 @@
 # Everything Bayesian
 
-Learning Bayesian Deep Learning with PyMC3.
+## NOTE
+
+**I'm hijacking this repository to experiment with Bayesian Machine Learning**
+
+- [ ] Mini-Pyro
+
+~~Learning Bayesian Deep Learning with PyMC3.~~
 
 ## Tutorials
 
-- [ ] [MCMC Sampling for dummies](http://twiecki.github.io/blog/2015/11/10/mcmc-sampling/)
-- [ ] [Uncertainty in Deep Learning](http://mlg.eng.cam.ac.uk/yarin/blog_2248.html)
-- [ ] [Modern Deep Learning through Bayesian Eyes](https://www.youtube.com/watch?v=3ONLxYeM1Sc)
+- [MCMC Sampling for dummies](http://twiecki.github.io/blog/2015/11/10/mcmc-sampling/)
+- [Uncertainty in Deep Learning](http://mlg.eng.cam.ac.uk/yarin/blog_2248.html)
+- [Modern Deep Learning through Bayesian Eyes](https://www.youtube.com/watch?v=3ONLxYeM1Sc)
 
 ## Blogs
 
