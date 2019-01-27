@@ -1,9 +1,9 @@
 import torch
 
 from collections import OrderedDict
- 
-STACK=[]
-PARAMS={}
+
+STACK = []
+PARAMS = {}
 
 
 """
@@ -23,9 +23,15 @@ class Messenger(object):
   def __enter__(self):
     STACK.append(self)
 
-  def __exit__(self):
+  def __exit__(self, *args, **kwargs):
     assert STACK[-1] is self
     STACK.pop()
+
+  def process_msg(self, msg):
+    pass
+
+  def postprocess_msg(self, msg):
+    pass
 
   def __call__(self, *args, **kwargs):
     with self:
@@ -61,7 +67,7 @@ class replay(Messenger):
 
 class block(Messenger):
 
-  def __init__(self, fn, hide_fn=lambda msg: True):
+  def __init__(self, fn=None, hide_fn=lambda msg: True):
     self.hide_fn = hide_fn
     super(block, self).__init__(fn)
 
@@ -87,7 +93,7 @@ class PlateMessenger(Messenger):
         # [2] does #items match the items in dimension 'dim' ?
         #
         # include dummy dimensions to compensate for the discrepancy
-        batch_shape = [1] * (-self.dim - self.batch_shape) + list(batch_shape)
+        batch_shape = [1] * (-self.dim - len(batch_shape)) + list(batch_shape)
         # NOTE : we are altering the batch_shape people
         batch_shape[self.dim] = self.size
         # expand "fn" based on batch_shape
@@ -101,7 +107,7 @@ def apply_stack(msg):
   # iterate through global stack
   for pointer, handler in enumerate(reversed(STACK)):
     handler.process_msg(msg)
-    # When "stop" field is set, any messengers above it, on the stack are 
+    # When "stop" field is set, any messengers above it, on the stack are
     #  stopped from being applied
     if msg.get('stop'):
       break
@@ -144,6 +150,35 @@ def sample(name, fn, obs=None):
   return msg['value']
 
 
+def param(name, init_value=None):
+
+  def fn(init_value):
+    value = PARAMS.setdefault(name, init_value)
+    value.requires_grad_()
+    return value
+
+  if not STACK:  # no active messengers
+    return fn(init_value)
+
+  # there are active messengers
+  # Initialize message
+  initial_msg = {
+      'type' : 'param',
+      'name' : name,
+      'value': None,
+      'fn'   : fn,
+      'args' : (init_value, )
+      }
+
+  msg = apply_stack(initial_msg)
+
+  return msg['value']
+
+
 # plate helper
 def plate(name, size, dim):
-  return PlateMessenger(fn=None, size=size, dim)
+  return PlateMessenger(fn=None, size=size, dim=dim)
+
+
+def get_param_store():
+  return PARAMS
