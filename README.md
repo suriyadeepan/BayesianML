@@ -4,7 +4,7 @@
 
 **I'm hijacking this repository to experiment with Bayesian Machine Learning**
 
-- [x] Mini-Pyro
+- [x] [Mini-Pyro](minipyro/)
 
 ~~Learning Bayesian Deep Learning with PyMC3.~~
 
