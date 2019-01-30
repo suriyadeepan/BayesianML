@@ -15,7 +15,7 @@ class SVI(object):
 
   def step(self, *args, **kwargs):
     """
-    This is the workhorse of inference algorithm
+    This is the workhorse of inference procedure
 
     [1] Run model
     [2] Run guide
