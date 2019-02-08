@@ -7,6 +7,9 @@
 - [x] [Deconstructing Pyro](minipyro/README.md)
 - [x] [Bayesian Linear Regression](bayesian-linear-regression)
   - [x] [Multivariate Linear Regression](bayesian-linear-regression/README.md#multivariate-linear-regression)
+- [x] [Bayesian Logistic Regression](bayesian-logistic-regression)
+  - [x] [Binary Classification](bayesian-logistic-regression)
+  - [ ] [Multiclass Classification](#)
 
 ~~Learning Bayesian Deep Learning with PyMC3.~~
 
