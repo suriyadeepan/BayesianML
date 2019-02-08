@@ -21,7 +21,8 @@ def model(x, y):
   # define model
   y_hat = w * x + b
   # variance of distribution centered around y
-  sigma = pyro.sample('sigma', pdist.Uniform(0., 10.))
+  # sigma = pyro.sample('sigma', pdist.Uniform(0., 10.))
+  sigma = pyro.sample('sigma', pdist.Normal(0., 1.))
   with pyro.iarange('data', len(x)):
     pyro.sample('obs', pdist.Normal(y_hat, sigma), obs=y)
 
@@ -43,7 +44,7 @@ def guide(x, y):
   sigma = pyro.sample('sigma', pdist.Normal(sigma_loc, sigma_scale))
 
   # build model
-  y_hat = w * x + b
+  # y_hat = w * x + b
 
 
 def inference(train_x, train_y, num_epochs=2000):
@@ -79,5 +80,10 @@ def summary(traces, sites):
 
 
 if __name__ == '__main__':
+  # get data
   train_x, train_y = noisy()
+
+  # for x, y in zip(train_x, train_y):
+  #   print('|  {:.2f} | {:.3f} |'.format(x.item(), y.item()))
+
   inference(train_x, train_y)
