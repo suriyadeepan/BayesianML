@@ -5,7 +5,7 @@
 **I'm hijacking this repository to experiment with Bayesian Machine Learning**
 
 - [x] [Deconstructing Pyro](minipyro/README.md)
-- [ ] [Bayesian Linear Regression](bayesian-linear-regression)
+- [x] [Bayesian Linear Regression](bayesian-linear-regression)
 
 ~~Learning Bayesian Deep Learning with PyMC3.~~
 
