@@ -6,6 +6,7 @@
 
 - [x] [Deconstructing Pyro](minipyro/README.md)
 - [x] [Bayesian Linear Regression](bayesian-linear-regression)
+  - [x] [Multivariate Linear Regression](bayesian-linear-regression/mvblinr.py)
 
 ~~Learning Bayesian Deep Learning with PyMC3.~~
 
