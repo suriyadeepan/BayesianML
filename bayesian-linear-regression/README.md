@@ -86,3 +86,52 @@ The posteriors are nicely centered around the values we chose in `noisy()` funct
 |-----|----------|-------|
 | `w` | 1.999    | 2.0   |
 | `b` | 0.297    | 0.3   |
+
+
+# Multivariate Linear Regression
+
+|  x0   |   x1  |  x2  |    y   |
+|-------|-------|------|--------|
+| -1.40 | -4.10 | 1.20 | -5.299 |
+| -3.50 | -4.90 | -0.40 | -13.799 |
+| -1.20 | -1.40 | 4.30 | 9.601 |
+| 2.40 | 0.10 | 0.00 | 3.301 |
+| -0.30 | 4.50 | -1.70 | 4.301 |
+| -1.80 | -4.40 | -0.80 | -12.299 |
+| 4.00 | 4.00 | 0.40 | 13.901 |
+| -4.50 | 0.00 | -0.20 | -4.399 |
+| -1.90 | -4.30 | 2.10 | -3.499 |
+| -2.60 | 4.80 | -0.50 | 6.201 |
+| 1.60 | 0.70 | -1.80 | -1.699 |
+| -2.10 | 0.20 | -4.20 | -13.599 |
+| -3.80 | -1.90 | 1.80 | -1.499 |
+| -0.10 | 4.10 | 0.70 | 10.901 |
+| 4.90 | 2.20 | 4.70 | 24.101 |
+| 4.50 | 1.60 | 1.00 | 11.401 |
+| -3.20 | 3.00 | -3.10 | -5.799 |
+
+Editing the code a bit, for Multi-variate Linear Regression, we have,
+
+```python
+def model(x, y):
+  w = pyro.sample('w', pdist.Normal(torch.zeros(3), torch.ones(3)))
+```
+
+##
+
+```python
+def guide(x, y):
+  w_loc = pyro.param('w_loc', torch.zeros(3))
+  w_scale = pyro.param('w_scale', torch.ones(3))
+
+  ...
+
+  w = pyro.sample('w', pdist.Normal(w_loc, w_scale))
+```
+ 
+|     | estimate | truth |
+|-----|----------|-------|
+| `w` | [ 0.996, 1.994, 3.006 ] | [ 1.0, 2.0, 3.0 ] |
+| `b` | 0.699    | 0.7   |
+
+One problem though. ELBO returns NaN values often. What's going on, in there?
