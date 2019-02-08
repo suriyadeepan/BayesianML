@@ -6,10 +6,6 @@ import pyro.optim as optim
 from pyro.infer import Trace_ELBO, SVI
 from torch.distributions import constraints
 
-import pandas as pd
-from pyro.infer import EmpiricalMarginal
-from functools import partial
-
 
 def shuffle(t):
   rand_indices = torch.randperm(len(t))
