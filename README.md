@@ -9,7 +9,7 @@
   - [x] [Multivariate Linear Regression](bayesian-linear-regression/README.md#multivariate-linear-regression)
 - [x] [Bayesian Logistic Regression](bayesian-logistic-regression)
   - [x] [Binary Classification](bayesian-logistic-regression)
-  - [ ] [Multiclass Classification](#)
+  - [x] [Multiclass Classification](bayesian-logistic-regression/README.md#multi-class-logistic-regression)
 
 ~~Learning Bayesian Deep Learning with PyMC3.~~
 
