@@ -4,10 +4,19 @@ import pyro.optim as optim
 
 import torch
 import torch.nn.functional as F
+from torchvision import datasets
+from torchvision import transforms
 
 from pyro.infer import Trace_ELBO, SVI
 
 from random import shuffle
+import argparse
+
+
+# cmd line arguments
+parser = argparse.ArgumentParser()
+parser.add_argument("--dataset", default='iris', help='Dataset : iris/mnist')
+args, unknown = parser.parse_known_args()
 
 
 def iris(datafile='./iris.data'):
@@ -41,41 +50,52 @@ def iris(datafile='./iris.data'):
       )
 
 
-def model(x, y):
-  w = pyro.sample('w', pdist.Normal(torch.zeros(4, 3), torch.ones(4, 3)))
-  b = pyro.sample('b', pdist.Normal(torch.zeros(1, 3), torch.ones(3)))
+def mnist():
+  trans = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
+  # if not exist, download mnist dataset
+  train = datasets.MNIST(root='.', train=True, transform=trans, download=True)
+  test = datasets.MNIST(root='.', train=False, transform=trans, download=True)
+  return train, test
+
+
+def model(x, y, dim_in, dim_out):
+  w = pyro.sample('w', pdist.Normal(torch.zeros(dim_in, dim_out), torch.ones(dim_in, dim_out)))
+  b = pyro.sample('b', pdist.Normal(torch.zeros(1, dim_out), torch.ones(1, dim_out)))
 
   # define model [1, 3] x [4, 3] + [1, 3] = [1, 3]
   y_hat = torch.matmul(x, w) + b  # use `logits` directly in `Categorical()`
 
   # observe data
-  with pyro.iarange('data', len(x)):
+  with pyro.plate('data'):  # , len(x)):
     # notice the Bernoulli distribution
     pyro.sample('obs', pdist.Categorical(logits=y_hat), obs=y)
 
 
-def guide(x, y):
+def guide(x, y, dim_in, dim_out):
   # parameters of (w : weight)
-  w_loc = pyro.param('w_loc', torch.zeros(4, 3))
-  w_scale = F.softplus(pyro.param('w_scale', torch.ones(4, 3)))
+  w_loc = pyro.param('w_loc', torch.zeros(dim_in, dim_out))
+  w_scale = F.softplus(pyro.param('w_scale', torch.ones(dim_in, dim_out)))
 
   # parameters of (b : bias)
-  b_loc = pyro.param('b_loc', torch.zeros(1, 3))
-  b_scale = F.softplus(pyro.param('b_scale', torch.ones(1, 3)))
+  b_loc = pyro.param('b_loc', torch.zeros(1, dim_out))
+  b_scale = F.softplus(pyro.param('b_scale', torch.ones(1, dim_out)))
 
   # sample (w, b)
   w = pyro.sample('w', pdist.Normal(w_loc, w_scale))
   b = pyro.sample('b', pdist.Normal(b_loc, b_scale))
 
 
-def inference(train_x, train_y, num_epochs=20000):
-  svi = SVI(model, guide, optim.Adam({'lr' : 0.0008}),
+def inference(train_x, train_y, dim_in, dim_out, num_epochs=20000):
+  """ NOTE : there must be a better way to feed dim_in/dim_out
+      perhaps we could infer them from train_x, train_y?
+  """
+  svi = SVI(model, guide, optim.Adam({'lr' : 0.005}),
       loss=Trace_ELBO(),
       num_samples=len(train_x)
       )
 
   for i in range(num_epochs):
-    elbo = svi.step(train_x, train_y)
+    elbo = svi.step(train_x, train_y, dim_in, dim_out)
     if i % 1000 == 0:
       print('Elbo loss : {}'.format(elbo))
 
@@ -89,10 +109,16 @@ def get_param(name):
 
 
 if __name__ == '__main__':
+
+  if args.dataset == 'iris':
+    get_data, dim_in, dim_out = iris, 4, 3
+  else:
+    get_data, dim_in, dim_out = mnist, 784, 10
+
   # get data
-  (train_x, train_y), (test_x, test_y) = iris()
+  (train_x, train_y), (test_x, test_y) = get_data()
   # infer params
-  inference(train_x, train_y)
+  inference(train_x, train_y, dim_in, dim_out)
 
   # parameters
   w, b = [ get_param(name) for name in ['w_loc', 'b_loc'] ]
