@@ -11,7 +11,7 @@ from pyro.infer import Trace_ELBO, SVI
 
 from random import shuffle
 import argparse
-from tqdm import tqdm
+# from tqdm import tqdm
 
 
 # cmd line arguments
@@ -102,7 +102,8 @@ def guide(x, y, dim_in, dim_out):
   b = pyro.sample('b', pdist.Normal(b_loc, b_scale))
 
 
-def inference(train_x, train_y, dim_in, dim_out, batch_size, num_epochs=20000):
+def inference(train_x, train_y, dim_in, dim_out,
+    batch_size, eval_fn=None, num_epochs=20000):
   """ NOTE : there must be a better way to feed dim_in/dim_out
       perhaps we could infer them from train_x, train_y?
   """
@@ -111,7 +112,7 @@ def inference(train_x, train_y, dim_in, dim_out, batch_size, num_epochs=20000):
       num_samples=len(train_x)
       )
 
-  for i in tqdm(range(num_epochs)):
+  for i in range(num_epochs):
 
     if batch_size > 0:  # random sample `batch_size` data points
       batch_x, batch_y = random_sample((train_x, train_y), batch_size)
@@ -122,7 +123,9 @@ def inference(train_x, train_y, dim_in, dim_out, batch_size, num_epochs=20000):
     elbo = svi.step(batch_x, batch_y, dim_in, dim_out)
 
     if i % 100 == 0:
-      print('Elbo loss : {}'.format(elbo))
+      print('[{}/{}] Elbo loss : {}'.format(i, num_epochs, elbo))
+      if eval_fn:
+        print('Evaluation Accuracy : ', eval_fn())
 
   print('pyro\'s Param Store')
   for k, v in pyro.get_param_store().items():
@@ -131,6 +134,22 @@ def inference(train_x, train_y, dim_in, dim_out, batch_size, num_epochs=20000):
 
 def get_param(name):
   return pyro.get_param_store()[name]
+
+
+def evaluate(test_x, test_y):
+  # get parameters
+  w, b = [ get_param(name) for name in ['w_loc', 'b_loc'] ]
+  # build model for prediction
+
+  def predict(x):
+    return torch.argmax(torch.softmax(torch.matmul(x, w) + b, dim=-1))
+
+  success = 0
+  for xi, yi in zip(test_x, test_y):
+    prediction = predict(xi.view(1, -1)).item()
+    success += int(int(yi) == prediction)
+
+  return 100. * success / len(test_x)
 
 
 if __name__ == '__main__':
@@ -142,18 +161,11 @@ if __name__ == '__main__':
 
   # get data
   (train_x, train_y), (test_x, test_y) = get_data()
+
   # infer params
-  inference(train_x, train_y, dim_in, dim_out, batch_size=batch_size)
+  inference(train_x, train_y, dim_in, dim_out, batch_size=batch_size,
+      eval_fn=lambda : evaluate(test_x, test_y)
+      )
 
-  # parameters
-  w, b = [ get_param(name) for name in ['w_loc', 'b_loc'] ]
-
-  predict = lambda x : torch.argmax(torch.softmax(torch.matmul(x, w) + b, dim=-1))
-
-  success = 0
-  for xi, yi in zip(test_x, test_y):
-    prediction = predict(xi.view(1, -1)).item()
-    print('y vs y_hat : {}/{}'.format(int(yi), prediction))
-    success += int(int(yi) == prediction)
-
-  print(':: Accuracy >> ', 100. * success / len(test_x))
+  # evaluate model based on inferred parameters
+  print(':: Accuracy >> ', evaluate(test_x, test_y))

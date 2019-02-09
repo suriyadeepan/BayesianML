@@ -95,3 +95,91 @@ x : tensor([4.4000, 3.2000, 1.3000, 0.2000]), y vs y_hat : 0/0
 x : tensor([4.9000, 2.4000, 3.3000, 1.0000]), y vs y_hat : 1/1
 x : tensor([6.4000, 2.7000, 5.3000, 1.9000]), y vs y_hat : 2/2
 ```
+
+## MNIST
+
+Classification of MNIST digits works. This required sub-sampling. I set the `batch_size` to `256` and passed `256` datapoints from the training set, at each step of `svi.step()` instead of the whole training set as we did for IRIS.
+
+I've added an evaluation function which runs the model on test set and return the accuracy.
+
+```python
+def evaluate(test_x, test_y):
+  # get parameters
+  w, b = [ get_param(name) for name in ['w_loc', 'b_loc'] ]
+  # build model for prediction
+
+  def predict(x):
+    return torch.argmax(torch.softmax(torch.matmul(x, w) + b, dim=-1))
+
+  success = 0
+  for xi, yi in zip(test_x, test_y):
+    prediction = predict(xi.view(1, -1)).item()
+    success += int(int(yi) == prediction)
+
+  return 100. * success / len(test_x)
+```
+
+##
+
+I'm getting an accuracy of `87.8%`, which is a win in my book.
+
+```
+[0/20000] Elbo loss : 6395.336477279663
+Evaluation Accuracy :  51.69
+[100/20000] Elbo loss : 9695.971691131592
+Evaluation Accuracy :  61.56
+[200/20000] Elbo loss : 3536.014835357666
+Evaluation Accuracy :  70.17
+[300/20000] Elbo loss : 1980.0322170257568
+Evaluation Accuracy :  77.9
+[400/20000] Elbo loss : 3451.1762771606445
+Evaluation Accuracy :  81.38
+[500/20000] Elbo loss : 2417.754991531372
+Evaluation Accuracy :  82.79
+[600/20000] Elbo loss : 3140.6585998535156
+Evaluation Accuracy :  84.66
+[700/20000] Elbo loss : 2804.7498960494995
+Evaluation Accuracy :  84.69
+[800/20000] Elbo loss : 2545.027126312256
+Evaluation Accuracy :  84.78
+[900/20000] Elbo loss : 2475.8251628875732
+Evaluation Accuracy :  86.45
+[1000/20000] Elbo loss : 1587.4794616699219
+Evaluation Accuracy :  86.01
+[1100/20000] Elbo loss : 2229.5697078704834
+Evaluation Accuracy :  84.63
+[1200/20000] Elbo loss : 1878.2400512695312
+Evaluation Accuracy :  86.79
+[1300/20000] Elbo loss : 1774.492763519287
+Evaluation Accuracy :  85.3
+[1400/20000] Elbo loss : 1764.1221342086792
+Evaluation Accuracy :  86.95
+[1500/20000] Elbo loss : 1764.941035270691
+Evaluation Accuracy :  87.41
+[1600/20000] Elbo loss : 2172.166663169861
+Evaluation Accuracy :  86.54
+[1700/20000] Elbo loss : 1643.249366760254
+Evaluation Accuracy :  86.49
+[1800/20000] Elbo loss : 2266.14005279541
+Evaluation Accuracy :  85.27
+[1900/20000] Elbo loss : 1817.266318321228
+Evaluation Accuracy :  88.07
+[2000/20000] Elbo loss : 2014.1496315002441
+Evaluation Accuracy :  86.25
+[2100/20000] Elbo loss : 1636.5766687393188
+Evaluation Accuracy :  87.47
+[2200/20000] Elbo loss : 2472.379104614258
+Evaluation Accuracy :  87.69
+[2300/20000] Elbo loss : 1383.4860372543335
+Evaluation Accuracy :  85.02
+[2400/20000] Elbo loss : 1569.5183238983154
+Evaluation Accuracy :  86.64
+[2500/20000] Elbo loss : 1459.0109167099
+Evaluation Accuracy :  85.88
+[2600/20000] Elbo loss : 2602.050601005554
+Evaluation Accuracy :  87.14
+[2700/20000] Elbo loss : 1544.3672218322754
+Evaluation Accuracy :  87.32
+[2800/20000] Elbo loss : 2307.0844678878784
+Evaluation Accuracy :  87.8
+```
