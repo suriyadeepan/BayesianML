@@ -1,8 +1,9 @@
-# Everything Bayesian
+# Bayesian Machine Learning
 
-## NOTE
-
-**I'm hijacking this repository to experiment with Bayesian Machine Learning**
+My experiments in Bayesian Machine Learning.
+I make use of [pyro](http://pyro.ai/)'s ppl constructs for building models and inference (`pyro.infer.SVI`).
+Every experiment is in a separate folder with documentation in `README`.
+The list of experiments are given below.
 
 - [x] [Deconstructing Pyro](minipyro/README.md)
 - [x] [Bayesian Linear Regression](bayesian-linear-regression)
@@ -12,17 +13,8 @@
   - [x] [Multiclass Classification](bayesian-logistic-regression/README.md#multi-class-logistic-regression)
   - [x] [MNIST Classification](bayesian-logistic-regression/README.md#mnist)
 - [ ] [Bayesian Neural Network](bayesian-neural-network/)
+- [ ] [Bayesian Convolutional Neural Network](#)
 
-~~Learning Bayesian Deep Learning with PyMC3.~~
+## How to Contribute?
 
-## Tutorials
-
-- [MCMC Sampling for dummies](http://twiecki.github.io/blog/2015/11/10/mcmc-sampling/)
-- [Uncertainty in Deep Learning](http://mlg.eng.cam.ac.uk/yarin/blog_2248.html)
-- [Modern Deep Learning through Bayesian Eyes](https://www.youtube.com/watch?v=3ONLxYeM1Sc)
-
-## Blogs
-
-- [Thomas Wiecki's Blog](http://twiecki.github.io/)
-- [Yarin Gal's Blog](http://mlg.eng.cam.ac.uk/yarin/blog.html)
-- [Shakir's Machine Learning Blog](http://blog.shakirm.com/)
+Would you like a question (relevant to Bayes ML) answered? Rise an issue and I'll add an experiment to answer it (if necessary).
