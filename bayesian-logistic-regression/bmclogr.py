@@ -11,12 +11,19 @@ from pyro.infer import Trace_ELBO, SVI
 
 from random import shuffle
 import argparse
+from tqdm import tqdm
 
 
 # cmd line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset", default='iris', help='Dataset : iris/mnist')
 args, unknown = parser.parse_known_args()
+
+
+def random_sample(t, k):
+  x, y = t
+  indices = torch.randperm(len(x))
+  return x[indices][:k], y[indices][:k]
 
 
 def iris(datafile='./iris.data'):
@@ -53,8 +60,15 @@ def iris(datafile='./iris.data'):
 def mnist():
   trans = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
   # if not exist, download mnist dataset
-  train = datasets.MNIST(root='.', train=True, transform=trans, download=True)
-  test = datasets.MNIST(root='.', train=False, transform=trans, download=True)
+  train = list(datasets.MNIST(root='.', train=True, transform=trans, download=True))
+  test = list(datasets.MNIST(root='.', train=False, transform=trans, download=True))
+
+  # convenience
+  t = torch.tensor
+
+  train = ( torch.cat([ d[0].view(1, 28*28) for d in train ], dim=0), t([ d[1] for d in train ]) )
+  test = ( torch.cat([ d[0].view(1, 28*28) for d in test ], dim=0), t([ d[1] for d in test ]) )
+
   return train, test
 
 
@@ -66,8 +80,11 @@ def model(x, y, dim_in, dim_out):
   y_hat = torch.matmul(x, w) + b  # use `logits` directly in `Categorical()`
 
   # observe data
-  with pyro.plate('data'):  # , len(x)):
+  # with pyro.plate('data', len(x), subsample_size=min(len(x), 100)) as idx:
+  with pyro.plate('data'):
     # notice the Bernoulli distribution
+    # pyro.sample('obs', pdist.Categorical(logits=y_hat),
+    #  obs=y.index_select(0, idx))
     pyro.sample('obs', pdist.Categorical(logits=y_hat), obs=y)
 
 
@@ -85,7 +102,7 @@ def guide(x, y, dim_in, dim_out):
   b = pyro.sample('b', pdist.Normal(b_loc, b_scale))
 
 
-def inference(train_x, train_y, dim_in, dim_out, num_epochs=20000):
+def inference(train_x, train_y, dim_in, dim_out, batch_size, num_epochs=20000):
   """ NOTE : there must be a better way to feed dim_in/dim_out
       perhaps we could infer them from train_x, train_y?
   """
@@ -94,9 +111,17 @@ def inference(train_x, train_y, dim_in, dim_out, num_epochs=20000):
       num_samples=len(train_x)
       )
 
-  for i in range(num_epochs):
-    elbo = svi.step(train_x, train_y, dim_in, dim_out)
-    if i % 1000 == 0:
+  for i in tqdm(range(num_epochs)):
+
+    if batch_size > 0:  # random sample `batch_size` data points
+      batch_x, batch_y = random_sample((train_x, train_y), batch_size)
+    else:
+      batch_x, batch_y = train_x, train_y  # feed the whole training set
+
+    # run a step of SVI
+    elbo = svi.step(batch_x, batch_y, dim_in, dim_out)
+
+    if i % 100 == 0:
       print('Elbo loss : {}'.format(elbo))
 
   print('pyro\'s Param Store')
@@ -111,22 +136,24 @@ def get_param(name):
 if __name__ == '__main__':
 
   if args.dataset == 'iris':
-    get_data, dim_in, dim_out = iris, 4, 3
+    get_data, dim_in, dim_out, batch_size = iris, 4, 3, 0
   else:
-    get_data, dim_in, dim_out = mnist, 784, 10
+    get_data, dim_in, dim_out, batch_size = mnist, 784, 10, 256
 
   # get data
   (train_x, train_y), (test_x, test_y) = get_data()
   # infer params
-  inference(train_x, train_y, dim_in, dim_out)
+  inference(train_x, train_y, dim_in, dim_out, batch_size=batch_size)
 
   # parameters
   w, b = [ get_param(name) for name in ['w_loc', 'b_loc'] ]
 
   predict = lambda x : torch.argmax(torch.softmax(torch.matmul(x, w) + b, dim=-1))
 
+  success = 0
   for xi, yi in zip(test_x, test_y):
-    print('x : {}, y vs y_hat : {}/{}'.format(
-      xi, int(yi), predict(xi.view(1, -1)).item()
-      # xi, yi, int(predict(xi.view(1, -1)).item() > 0.5)
-      ))
+    prediction = predict(xi.view(1, -1)).item()
+    print('y vs y_hat : {}/{}'.format(int(yi), prediction))
+    success += int(int(yi) == prediction)
+
+  print(':: Accuracy >> ', 100. * success / len(test_x))
