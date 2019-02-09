@@ -10,6 +10,7 @@
 - [x] [Bayesian Logistic Regression](bayesian-logistic-regression)
   - [x] [Binary Classification](bayesian-logistic-regression)
   - [x] [Multiclass Classification](bayesian-logistic-regression/README.md#multi-class-logistic-regression)
+  - [x] [MNIST Classification](bayesian-logistic-regression/README.md#mnist)
 
 ~~Learning Bayesian Deep Learning with PyMC3.~~
 
