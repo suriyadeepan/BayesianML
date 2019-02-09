@@ -103,7 +103,7 @@ def guide(x, y, dim_in, dim_out):
 
 
 def inference(train_x, train_y, dim_in, dim_out,
-    batch_size, eval_fn=None, num_epochs=20000):
+  batch_size, eval_fn=None, num_epochs=20000):
   """ NOTE : there must be a better way to feed dim_in/dim_out
       perhaps we could infer them from train_x, train_y?
   """
