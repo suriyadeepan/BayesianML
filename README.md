@@ -12,6 +12,9 @@ The list of experiments are given below.
   - [x] [Binary Classification](bayesian-logistic-regression)
   - [x] [Multiclass Classification](bayesian-logistic-regression/README.md#multi-class-logistic-regression)
   - [x] [MNIST Classification](bayesian-logistic-regression/README.md#mnist)
+- [ ] [Bayes by Backprop](bayes-by-backprop/)
+  - [x] [MNIST Classification](bayes-by-backprop/b3.py)
+  - [ ] Out-of-domain Uncertainty
 - [ ] [Bayesian Neural Network](bayesian-neural-network/)
 - [ ] [Bayesian Convolutional Neural Network](#)
 

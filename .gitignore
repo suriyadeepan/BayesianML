@@ -2,3 +2,6 @@
 *swp
 .ipynb_checkpoints/
 */MNIST/
+*.pdf
+*.ipynb
+.DS_Store
