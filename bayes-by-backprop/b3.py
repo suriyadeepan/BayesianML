@@ -164,7 +164,7 @@ def train_epoch(net, trainset, optim, batch_size):
   net.train()  # train-mode
   train_x, train_y = trainset
   # iterations = len(train_x) // batch_size
-  iterations = 100
+  iterations = 300
 
   epoch_loss = 0
   for idx in tqdm(range(iterations)):
@@ -185,7 +185,45 @@ def train(net, dataset, batch_size, num_epochs=100):
 
   for epoch in range(num_epochs):
     epoch_loss = train_epoch(net, trainset, optim, batch_size=batch_size)
-    print('[{}] {}'.format(epoch, epoch_loss))
+    print('[{}] train : {:10.4f}; eval : {:10.4f}%'.format(
+      epoch, epoch_loss,
+      evaluate_ensemble(net, testset, batch_size=batch_size)
+      ))
+
+
+def evaluate(net, testset, batch_size):
+  net.eval()  # train-mode
+  test_x, test_y = testset
+  # iterations = len(test_x) // batch_size
+  iterations = 30
+
+  epoch_loss = 0
+  for idx in range(iterations):
+    batch_x = test_x[idx * batch_size : (idx + 1) * batch_size ]
+    batch_y = test_y[idx * batch_size : (idx + 1) * batch_size ]
+    loss = net.sample_elbo(batch_x, batch_y, batch_size=batch_size)
+    epoch_loss += loss.item()
+
+  return epoch_loss / iterations
+
+
+def evaluate_ensemble(net, testset, batch_size=64):
+  net.eval()
+  test_x, test_y = testset
+  iterations = 80
+  corrects = 0
+  for idx in range(iterations):
+      batch_x = test_x[idx * batch_size : (idx + 1) * batch_size ]
+      batch_y = test_y[idx * batch_size : (idx + 1) * batch_size ]
+      outputs = []
+      for i in range(3):
+          outputs.append(net(batch_x, sample=True))
+      outputs.append(net(batch_x, sample=False))
+      av_output = torch.stack(outputs, dim=0).mean(0)
+      preds = av_output.argmax(dim=1)
+      corrects += (preds == batch_y).float().sum()
+
+  return 100. * corrects / (iterations * batch_size)
 
 
 def mnist():
@@ -197,8 +235,10 @@ def mnist():
   # convenience
   t = torch.tensor
 
-  train = ( torch.cat([ d[0].view(1, 28 * 28) for d in train ], dim=0), t([ d[1] for d in train ]) )
-  test = ( torch.cat([ d[0].view(1, 28 * 28) for d in test ], dim=0), t([ d[1] for d in test ]) )
+  train = ( torch.cat([ d[0].view(1, 28 * 28) for d in train ], dim=0),
+      t([ d[1] for d in train ]) )
+  test = ( torch.cat([ d[0].view(1, 28 * 28) for d in test ], dim=0),
+      t([ d[1] for d in test ]) )
 
   return train, test
 
@@ -207,12 +247,9 @@ if __name__ == '__main__':
 
   # MNIST config
   get_data, dim_in, dim_out, batch_size = mnist, 784, 10, 256
-
   # get data
   trainset, testset = get_data()
-
   # instantiate model
   bnn = BayesianNeuralNet(28 * 28, 400, 10)
-
   # training
   train(bnn, (trainset, testset), batch_size=64)
