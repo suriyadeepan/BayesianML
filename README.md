@@ -13,10 +13,20 @@ The list of experiments are given below.
   - [x] [Multiclass Classification](bayesian-logistic-regression/README.md#multi-class-logistic-regression)
   - [x] [MNIST Classification](bayesian-logistic-regression/README.md#mnist)
 - [ ] [Bayes by Backprop](bayes-by-backprop/)
-  - [x] [MNIST Classification](bayes-by-backprop/b3.py)
+  - [x] [Bayesian Neural Network for MNIST Classification](bayes-by-backprop/b3.py)
   - [ ] Out-of-domain Uncertainty
 - [ ] [Bayesian Neural Network](bayesian-neural-network/)
 - [ ] [Bayesian Convolutional Neural Network](#)
+- [x] [Gaussian Mixture Model](gmm/)
+- [ ] [Pyro Demystified](on-pyro/)
+- [ ] [Introduction to PyMC3](pymc3-intro)
+- [x] [Gaussian Processes](gaussian-processes/)
+  - [x] [GPytorch](gaussian-processes/GPytorch.ipynb)
+  - [ ] [Simulation of Bose Einstein Condensates with Gaussian Processes](gaussian-processes/BEC.ipynb)
+
+## Related Work
+
+- [Anatomy of Probabilistic Programming Languages](https://github.com/suriyadeepan/anatomy-of-ppl)
 
 ## How to Contribute?
 
